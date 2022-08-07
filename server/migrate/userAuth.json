@@ -1,0 +1,10 @@
+[
+  {
+    "_id": {
+      "$oid": "62e8f1e0ccd8c3d020e9bbcf"
+    },
+    "login": "admin",
+    "loginPassBase64": "YWRtaW46YWRtaW4=",
+    "userId": "60d0fe4f5311236168a109fd"
+  }
+]

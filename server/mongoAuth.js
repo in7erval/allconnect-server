@@ -1,28 +1,84 @@
 const mongo = require('./mongo');
+const UserAuth = require('./models/userAuth');
+const User = require('./models/user');
+
+
+const mongoUsers = require('./mongoUsers');
 const {
 	MULTIPLE_LOGINS,
 	NOT_FOUND,
-	PASSWORD_NOT_CORRECT
+	PASSWORD_NOT_CORRECT,
+	ALREADY_REGISTERED,
+	NOT_ACKNOWLEDGED
 } = require('./errors/authErrors');
+const mongoose = require("mongoose");
 
-async function getAndCheckUser(db, login, loginPass) {
-	let logins = await db.collection(mongo.USER_AUTH_COLLECTION)
-		.find({"login": login}).toArray();
+async function getUser(login, loginPass) {
+	let user = {};
+	let error = null;
 
-	if (logins.length > 1) {
-		console.warn("Found multiple logins: ", logins);
-		return {user: null, error: MULTIPLE_LOGINS};
-	} else if (logins.length === 0) {
-		return {user: null, error: NOT_FOUND};
+	const promise = UserAuth.findOne({"login": login})
+		// .populate('user')
+		.exec();
+
+	await promise.then((userAuth, err) => {
+		if (err) {
+			console.log('error', err.toString());
+			error = {msg: err.toString(), code: -1};
+		} else {
+			console.log("found", userAuth);
+			user = userAuth;
+		}
+	});
+
+	if (user === null) {
+		return {body: null, error: NOT_FOUND};
 	}
 
-	let user = logins[0];
 	if (user.loginPassBase64 !== loginPass) {
-		return {user: null, error: PASSWORD_NOT_CORRECT};
+		return {body: null, error: PASSWORD_NOT_CORRECT};
 	}
 
-	return {user: user, error: null};
+	return {body: user, error: null};
 }
 
-exports.getAndCheckUser = getAndCheckUser;
+async function registerUser(user) {
+	let answ = {};
+	let error = null;
+
+	const newUser = new User({
+		firstName: user.firstName,
+		lastName: user.lastName,
+		friends: []
+	})
+
+	const newUserAuth = new UserAuth({
+		login: user.login,
+		loginPassBase64: user.loginPass,
+		user: newUser._id
+	});
+
+	await newUserAuth.save()
+		.then(inst => {
+			console.log("newUSERAUTH", inst);
+			newUser._id = inst.user;
+			return newUser.save();
+		})
+		.then(instUser => {
+			console.log("USER", instUser);
+			answ = instUser;
+		})
+		.catch(err => {
+			console.log('error', err.toString());
+			error = {msg: err.toString(), code: -1};
+		});
+
+	return {body: answ, error};
+}
+
+module.exports = {
+	getUser,
+	registerUser
+}
+
 
