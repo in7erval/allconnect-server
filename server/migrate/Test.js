@@ -15,11 +15,52 @@ mongoose.Promise = global.Promise;
 
 const db = mongoose.connection;
 
-db.on('error', console.error.bind(console, 'MongoDB connection error:'))
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+function randomInt(min, max) {
+	let rand = min - 0.5 + Math.random() * (max - min + 1);
+	return Math.round(rand);
+}
+
+function shuffle(array) {
+	let currentIndex = array.length, randomIndex;
+
+	// While there remain elements to shuffle.
+	while (currentIndex != 0) {
+
+		// Pick a remaining element.
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex--;
+
+		// And swap it with the current element.
+		[array[currentIndex], array[randomIndex]] = [
+			array[randomIndex], array[currentIndex]];
+	}
+
+	return array;
+}
+
+
+/** Add likes */
+// Post.find({})
+// 	.populate('owner')
+// 	.exec()
+// 	.then(async posts => {
+// 		for (let post of posts) {
+// 			let users = (await User.find({_id: {"$ne": post.owner._id}}).exec())
+// 				.map(el => el._id);
+// 			const likesCount = randomInt(0, 50);
+// 			users = shuffle(users);
+// 			post.likes = users.slice(0, likesCount);
+// 			await post.save();
+// 			console.log("saved likes=", likesCount);
+// 		}
+// 	});
+
 
 // for (let userAuth of userAuths) {
 // 	const newUserAuth = new UserAuth({
-// 		login: userAuth.login,
+// 		Login: userAuth.Login,
 // 		loginPassBase64: userAuth.loginPassBase64,
 // 		user: new mongoose.Types.ObjectId(userAuth.userId),
 // 	});
@@ -33,15 +74,15 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 // 	})
 // }
 //
-UserAuth.findOne({login: 'aaaa'})
-	.populate('user')
-	.exec((err, inst) => {
-		if (err) {
-			console.error(err);
-		} else {
-			console.log(inst);
-		}
-	})
+// UserAuth.findOne({login: 'aaaa'})
+// 	.populate('user')
+// 	.exec((err, inst) => {
+// 		if (err) {
+// 			console.error(err);
+// 		} else {
+// 			console.log(inst);
+// 		}
+// 	})
 
 
 // for (let comment of comments) {
