@@ -14,10 +14,16 @@ const jsonParser = bodyParser.json();
 app.use(jsonParser);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/uploads', express.static('uploads'));
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "http://109.120.191.219:3000");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 app.set("view engine", "ejs");
 
+createFilesRoute(app);
 createRoutes(app);
-createFilesRoute(app)
 
 const server = http.createServer(app);
 
