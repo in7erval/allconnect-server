@@ -22,13 +22,15 @@ const fileFilter = (req, file, cb) => {
 	if (file.mimetype === "image/png" ||
 		file.mimetype === "image/jpg" ||
 		file.mimetype === "image/jpeg") {
+		console.log("FILE TRUE");
 		cb(null, true);
 	} else {
+		console.log("FILE FALSE");
 		cb(null, false);
 	}
 }
 
-const upload = multer({storage: storage, fileFilter: fileFilter});
+const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 function createFilesRoute(app) {
 
@@ -47,7 +49,7 @@ function createFilesRoute(app) {
 		console.log("URL", fullurl);
 		// console.log("data", fs.readFileSync(req.file.path));
 
-		mongoUsers.updateOne({userId: req.params.id, picture: fullurl})
+		mongoUsers.updateOne({ userId: req.params.id, picture: fullurl })
 			.then(answ => res.json(answ));
 
 		// imgModel.create(obj, (err, item) => {
@@ -61,4 +63,4 @@ function createFilesRoute(app) {
 	});
 }
 
-module.exports = {createFilesRoute};
+module.exports = { createFilesRoute };

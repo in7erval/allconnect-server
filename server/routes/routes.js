@@ -104,4 +104,4 @@ function createRoutes(app) {
 	});
 }
 
-module.exports = {createRoutes};
+module.exports = { createRoutes };
