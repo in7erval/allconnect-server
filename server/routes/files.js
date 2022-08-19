@@ -7,7 +7,7 @@ const mongoUsers = require("../dbapi/mongoUsers");
 
 const storage = multer.diskStorage({
 	destination: (req, file, cb) => {
-		let pathStr = path.join(__dirname + '/uploads/' + req.params.id + "/").toString();
+		let pathStr = path.join(__dirname + '/../uploads/' + req.params.id + "/").toString();
 		if (!fs.existsSync(pathStr)) {
 			fs.mkdirSync(pathStr);
 		}
@@ -18,7 +18,17 @@ const storage = multer.diskStorage({
 	}
 });
 
-const upload = multer({storage: storage});
+const fileFilter = (req, file, cb) => {
+	if (file.mimetype === "image/png" ||
+		file.mimetype === "image/jpg" ||
+		file.mimetype === "image/jpeg") {
+		cb(null, true);
+	} else {
+		cb(null, false);
+	}
+}
+
+const upload = multer({storage: storage, fileFilter: fileFilter});
 
 function createFilesRoute(app) {
 
