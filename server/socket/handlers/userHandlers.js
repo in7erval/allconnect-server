@@ -4,7 +4,7 @@ const users = {}
 function registerUserHandlers(io, socket) {
 
 	// извлекаем идентификатор комнаты и имя пользователя из объекта сокета
-	const { roomId, userName } = socket;
+	const { roomId, userId} = socket;
 
 	// инициализируем хранилище пользователей
 	if (!users[roomId]) {
@@ -17,29 +17,29 @@ function registerUserHandlers(io, socket) {
 		io.to(roomId).emit('user_list:update', users[roomId])
 	}
 
-	// // обрабатываем подключение нового пользователя
-	// socket.on('user:add', async (user) => {
-	// 	// сообщаем другим пользователям об этом
-	// 	socket.to(roomId).emit('log', `User ${userName} connected`);
-	//
-	// 	console.log("user", user);
-	//
-	// 	// записываем идентификатор сокета пользователя
-	// 	user.socketId = socket.id;
-	//
-	// 	// записываем пользователя в хранилище
-	// 	users[roomId].push(user);
-	//
-	// 	// обновляем список пользователей
-	// 	updateUserList();
-	// })
+	// обрабатываем подключение нового пользователя
+	socket.on('user:add', async (user) => {
+		// сообщаем другим пользователям об этом
+		socket.to(roomId).emit('log', `User ${userId} connected`);
+
+		console.log("user", user);
+
+		// записываем идентификатор сокета пользователя
+		user.socketId = socket.id;
+
+		// записываем пользователя в хранилище
+		users[roomId].push(user);
+
+		// обновляем список пользователей
+		updateUserList();
+	})
 
 	// обрабатываем отключения пользователя
 	socket.on('disconnect', () => {
 		if (!users[roomId]) return
 
 		// сообщаем об этом другим пользователям
-		socket.to(roomId).emit('log', `User ${userName} disconnected`)
+		socket.to(roomId).emit('log', `User ${userId} disconnected`)
 
 		// удаляем пользователя из хранилища
 		users[roomId] = users[roomId].filter((u) => u.socketId !== socket.id)

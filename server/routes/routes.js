@@ -2,6 +2,7 @@ const mongoUsers = require("../dbapi/mongoUsers");
 const mongoComments = require("../dbapi/mongoComments");
 const mongoPosts = require("../dbapi/mongoPosts");
 const mongoAuth = require("../dbapi/mongoAuth");
+const mongoMessages = require("../dbapi/mongoMessages");
 const bodyParser = require("body-parser");
 
 const jsonParser = bodyParser.json();
@@ -101,6 +102,11 @@ function createRoutes(app) {
 		console.log('/api/users/update body=', req.body);
 
 		mongoUsers.updateOne(req.body).then(result => res.json(result))
+	});
+
+	app.get("/api/messages", (req, res) => {
+		console.log('/api/messages query=', req.query);
+		mongoMessages.find(req.query).then(result => res.json(result));
 	});
 }
 

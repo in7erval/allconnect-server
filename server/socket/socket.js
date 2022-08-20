@@ -1,4 +1,6 @@
 const socketio = require('socket.io');
+const registerMessageHandlers = require("./handlers/messageHandlers");
+const registerUserHandlers = require("./handlers/userHandlers");
 
 
 function initSocket(server) {
@@ -11,39 +13,44 @@ function initSocket(server) {
 
 // получаем обработчики событий
 	const registerMessageHandlers = require('./handlers/messageHandlers');
-	const registerUserHandlers = require('./handlers/userHandlers');
+	// const registerUserHandlers = require('./handlers/userHandlers');
 	const registerCommentHandlers = require('./handlers/commentHandlers');
 
 // данная функция выполняется при подключении каждого сокета (обычно, один клиент = один сокет)
 	const onConnection = (io, socket) => {
 		console.log('User connected');
 
-		const {roomId, userName, postId, userId} = socket.handshake.query;
+		const {roomId, postId, userId, action} = socket.handshake.query;
 
 		socket.roomId = roomId;
-		socket.userName = userName;
 		socket.postId = postId;
 		socket.userId = userId;
+		socket.action = action;
+		// registerUserHandlers(io, socket);
 
-		if (roomId) {
-			socket.join(roomId);
-		} else {
-			socket.join(postId);
+		switch (action) {
+			case "message":
+				socket.join(roomId);
+				registerMessageHandlers(io, socket);
+				break;
+			case "comment":
+				socket.join(postId);
+				registerCommentHandlers(io, socket);
+				break
 		}
-
-		registerMessageHandlers(io, socket);
-		registerUserHandlers(io, socket);
-		registerCommentHandlers(io, socket);
 
 		// обрабатываем отключение сокета-пользователя
 		socket.on('disconnect', () => {
 			// выводим сообщение
 			console.log('User disconnected')
 			// покидаем комнату
-			if (roomId) {
-				socket.leave(roomId);
-			} else {
-				socket.leave(postId);
+			switch (action) {
+				case "message":
+					socket.leave(roomId);
+					break;
+				case "comment":
+					socket.leave(postId);
+					break;
 			}
 		})
 	}
