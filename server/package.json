@@ -1,16 +1,16 @@
 {
-  "name": "react-website-server",
+  "name": "allconnect-website-server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "mongo": "cd mongoserv; ./mongod -f mongod.conf && cd - &",
-    "start": "nodemon index.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "in7erval",
   "license": "ISC",
-  "description": "",
+  "description": "Next-gen social platform",
   "dependencies": {
     "axios": "^0.27.2",
     "body-parser": "1.20.0",
