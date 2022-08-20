@@ -1,7 +1,4 @@
 const socketio = require('socket.io');
-const registerMessageHandlers = require("./handlers/messageHandlers");
-const registerUserHandlers = require("./handlers/userHandlers");
-
 
 function initSocket(server) {
 

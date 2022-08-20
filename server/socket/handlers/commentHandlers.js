@@ -38,7 +38,7 @@ function registerCommentHandlers(io, socket) {
 
 		console.log("INPUT COMMENT", commentMsg);
 		// пользователи не должны ждать записи сообщения в БД
-		comment = await Comment.create({
+		let comment = await Comment.create({
 			message: commentMsg,
 			owner: userId,
 			post: postId
@@ -63,9 +63,6 @@ function registerCommentHandlers(io, socket) {
 		Comment.findByIdAndDelete(commentId).exec()
 			.then(() => {
 				console.log("comment removed");
-				// if (messageType !== 'text') {
-				// 	removeFile(textOrPathToFile)
-				// }
 			})
 			.then(() => {
 					console.log(comments[postId].length);
