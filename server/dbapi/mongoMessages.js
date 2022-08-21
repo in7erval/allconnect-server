@@ -27,8 +27,12 @@ async function find(query) {
 	return {body: answ, error}
 }
 
+async function save(message) {
+	await Message.create(message);
+}
+
 module.exports = {
-	find
+	find, save
 }
 
 // exports.getAll = getAll;

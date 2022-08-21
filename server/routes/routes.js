@@ -105,8 +105,13 @@ function createRoutes(app) {
 	});
 
 	app.get("/api/messages", (req, res) => {
-		console.log('/api/messages query=', req.query);
+		console.log('GET /api/messages query=', req.query);
 		mongoMessages.find(req.query).then(result => res.json(result));
+	});
+
+	app.post("/api/messages", jsonParser, (req, res) => {
+		console.log('POST /api/messages body=', req.body);
+		mongoMessages.save(req.body).then(result => res.json(result));
 	});
 }
 
