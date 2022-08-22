@@ -17,7 +17,7 @@ async function getUser(login, loginPass) {
 	let user = {};
 	let error = null;
 
-	const promise = UserAuth.findOne({"login": login})
+	const promise = UserAuth.findOne({"login": login.toString()})
 		// .populate('user')
 		.exec();
 
@@ -39,7 +39,7 @@ async function getUser(login, loginPass) {
 		return {body: null, error: PASSWORD_NOT_CORRECT};
 	}
 
-	return {body: user, error: null};
+	return {body: user, error: error};
 }
 
 async function registerUser(user) {

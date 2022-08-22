@@ -15,10 +15,9 @@ const storage = multer.diskStorage({
 			fs.mkdirSync(pathStr);
 		}
 		req.body['dest'] = pathStr;
-		// console.log("TUT", req.body['dest']);
 		cb(null, pathStr);
 	},
-	filename: function (req, file, cb) {
+	filename: async function (req, file, cb) {
 		let ars = file.originalname.split(".");
 		let type = ars[ars.length - 1];
 
@@ -28,7 +27,7 @@ const storage = multer.diskStorage({
 		const fullurl = url + '/uploads/' + req.params.id + "/" + fname
 		console.log("URL", fullurl);
 
-		// await mongoUsers.updateOne({ userId: req.params.id, picture: fullurl });
+		await mongoUsers.updateOne({userId: req.params.id, picture: fullurl});
 
 		cb(null, fname);
 	}

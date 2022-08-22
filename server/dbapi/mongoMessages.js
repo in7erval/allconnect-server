@@ -4,7 +4,7 @@ async function find(query) {
 	let answ = [];
 	let error = null;
 
-	let promise = Message.find({roomId: query.roomId})
+	let promise = Message.find({roomId: query.roomId.toString()})
 		.sort({createdAt: -1});
 
 
@@ -28,22 +28,15 @@ async function find(query) {
 }
 
 async function save(message) {
-	await Message.create(message);
+	await Message.create({
+		user: message.user.toString(),
+		roomId: message.roomId.toString(),
+		text: message.text.toString()
+	});
 }
 
 module.exports = {
 	find, save
 }
-
-// exports.getAll = getAll;
-// exports.getById = getById;
-// exports.getUserComments = getUserComments;
-// exports.getUserPosts = getUserPosts;
-// exports.insertUser = insertUser;
-// exports.getUserByName = getUserByName;
-// exports.deleteFriend = deleteFriend;
-// exports.addFriend = addFriend;
-// exports.changeName = changeName;
-// exports.setPhoto = setPhoto;
 
 

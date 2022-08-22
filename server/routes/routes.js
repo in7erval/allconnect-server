@@ -65,7 +65,7 @@ function createRoutes(app) {
 	app.post("/api/auth", jsonParser, (req, res) => {
 		console.log('/api/auth body=', req.body);
 
-		mongoAuth.getUser(req.body.login, req.body.loginPass)
+		mongoAuth.getUser(req.body.login.toString(), req.body.loginPass.toString())
 			.then(result => res.json(result));
 	});
 

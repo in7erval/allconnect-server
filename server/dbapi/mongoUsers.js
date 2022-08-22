@@ -4,7 +4,7 @@ const User = require('../models/user');
 const {parseQuery} = require("./mongo");
 
 Array.prototype.remove = function () {
-	var what, a = arguments, L = a.length, ax;
+	let what, a = arguments, L = a.length, ax;
 	while (L && this.length) {
 		what = a[--L];
 		while ((ax = this.indexOf(what)) !== -1) {
@@ -62,25 +62,6 @@ async function getById(id, query) {
 		});
 
 	return {body: answ, error}
-}
-
-async function insertUser(db, user) {
-	let userId = new UUID().toString();
-
-	await db.collection(mongo.USERS_COLLECTION)
-		.insertOne({
-				_id: userId,
-				id: userId,
-				...user
-			}
-		);
-
-	return await db.collection(mongo.USERS_FULL_COLLECTION)
-		.insertOne({
-			_id: userId,
-			id: userId,
-			...user
-		});
 }
 
 async function getUserByName(query) {
@@ -300,22 +281,10 @@ async function updateOne(body) {
 module.exports = {
 	getAll,
 	getById,
-	insertUser,
 	getUserByName,
 	deleteFriend,
 	addFriend,
 	updateOne
 }
-
-// exports.getAll = getAll;
-// exports.getById = getById;
-// exports.getUserComments = getUserComments;
-// exports.getUserPosts = getUserPosts;
-// exports.insertUser = insertUser;
-// exports.getUserByName = getUserByName;
-// exports.deleteFriend = deleteFriend;
-// exports.addFriend = addFriend;
-// exports.changeName = changeName;
-// exports.setPhoto = setPhoto;
 
 

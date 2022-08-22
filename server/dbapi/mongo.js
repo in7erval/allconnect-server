@@ -92,7 +92,7 @@ async function getAllForUser(db, collectionName, skipCount, limit, userId) {
 }
 
 async function getById(db, collectionName, id) {
-	return await db.collection(collectionName)
+	return db.collection(collectionName)
 		.findOne({"id": id});
 }
 
