@@ -93,7 +93,7 @@ async function getUserByName(query) {
 		};
 	}
 
-	await User.findOne({firstName: query.firstName, lastName: query.lastName})
+	await User.findOne({firstName: query.firstName.toString(), lastName: query.lastName.toString()})
 		.exec()
 		.then(user => {
 			console.log("found", user);
@@ -141,7 +141,7 @@ async function deleteFriend(query) {
 
 	let user1 = {};
 
-	await User.findById(query.userId).exec()
+	await User.findById(query.userId.toString()).exec()
 		.then(inst => {
 			user1 = inst;
 		})
@@ -157,7 +157,7 @@ async function deleteFriend(query) {
 
 	let user2 = {};
 
-	await User.findById(query.friendId).exec()
+	await User.findById(query.friendId.toString()).exec()
 		.then(inst => {
 			user2 = inst;
 		})
@@ -214,7 +214,7 @@ async function addFriend(query) {
 
 	let user1 = {};
 
-	await User.findById(query.userId).exec()
+	await User.findById(query.userId.toString()).exec()
 		.then(inst => {
 			user1 = inst;
 		})
@@ -230,7 +230,7 @@ async function addFriend(query) {
 
 	let user2 = {};
 
-	await User.findById(query.friendId).exec()
+	await User.findById(query.friendId.toString()).exec()
 		.then(inst => {
 			user2 = inst;
 		})
@@ -259,11 +259,13 @@ async function addFriend(query) {
 }
 
 async function updateOne(body) {
-	const userId = body.userId;
+	const userId = body.userId.toString();
 
 	delete body.userId;
 
 	let error = null;
+
+	body = JSON.parse(JSON.stringify(body));
 
 	await User.updateOne({_id: userId}, body).exec()
 		.then(val => {
