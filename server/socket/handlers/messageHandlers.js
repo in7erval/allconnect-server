@@ -11,9 +11,9 @@ function registerMessageHandlers(io, socket) {
 
 	// утилита для обновления списка сообщений
 	const updateMessageList = () => {
-		io.to(roomId).emit('message_list:update', messages[roomId])
+		console.log("updateMessageList");
+		io.to(roomId).emit('message_list:update', messages[roomId]);
 	};
-
 	// обрабатываем получение сообщений
 	socket.on('message:get', async () => {
 		try {
@@ -31,7 +31,6 @@ function registerMessageHandlers(io, socket) {
 		}
 	});
 
-
 	// обрабатываем создание нового сообщения
 	socket.on('message:add', async (message) => {
 
@@ -46,8 +45,13 @@ function registerMessageHandlers(io, socket) {
 		await message.populate('user');
 		console.log("POPULATE", message);
 
-		// создаем сообщение оптимистически,
-		// т.е. предполагая, что запись сообщения в БД будет успешной
+		if (!messages[roomId] || messages[roomId].length === 0) {
+			const _messages = await Message.find({roomId})
+				.populate('user').exec();
+			console.log("_messages", _messages);
+			// инициализируем хранилище сообщений
+			messages[roomId] = _messages
+		}
 		messages[roomId].push(message);
 
 		// обновляем список сообщений
@@ -77,16 +81,26 @@ function registerMessageHandlers(io, socket) {
 	})
 
 	socket.on('message:addToSeenBy', async (parameters) => {
-		const {_id: messageId, user: userId} = parameters;
-		await Message.findByIdAndUpdate(messageId, {"$push": {"seenBy": userId}}, (err, docs) => {
-			if (err) {
-				console.log(err)
-			} else {
-				console.log("Updated message : ", docs);
-			}
-		})
-			.catch(onError)
-			.then(() => updateMessageList());
+		const {_id, user} = parameters;
+		console.log("addToSeenBy", parameters);
+		await Message.findOneAndUpdate(
+			{"_id": _id},
+			{"$addToSet": {seenBy: user}},
+			{safe: true, new: true}
+		).exec()
+			.then((doc, err) => {
+				if (err) {
+					console.log("err", err);
+				} else {
+					console.log("Updated message:", doc);
+				}
+			})
+			.then(async () => {
+				messages[roomId] = await Message.find({roomId})
+					.populate('user').exec();
+			})
+			.then(() => updateMessageList())
+			.catch(onError);
 	});
 
 }

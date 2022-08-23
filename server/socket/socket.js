@@ -15,7 +15,7 @@ function initSocket(server) {
 
 // данная функция выполняется при подключении каждого сокета (обычно, один клиент = один сокет)
 	const onConnection = (io, socket) => {
-		console.log('User connected');
+
 
 		const {roomId, postId, userId, action} = socket.handshake.query;
 
@@ -23,6 +23,8 @@ function initSocket(server) {
 		socket.postId = postId;
 		socket.userId = userId;
 		socket.action = action;
+
+		console.log(`User ${userId} connected to (roomId:${roomId})(postId:${postId})`);
 		// registerUserHandlers(io, socket);
 
 		switch (action) {
