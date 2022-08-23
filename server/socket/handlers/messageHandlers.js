@@ -1,5 +1,6 @@
 const Message = require('../../models/message');
 const onError = require('../../utils/onError');
+const mongoMessages = require("../../dbapi/mongoMessages");
 
 // "хранилище" для сообщений
 const messages = {}
@@ -36,7 +37,8 @@ function registerMessageHandlers(io, socket) {
 
 		console.log("INPUT MESSAGE", message);
 		// пользователи не должны ждать записи сообщения в БД
-		message = await Message.create(message).catch(onError);
+
+		message = await mongoMessages.save(message);
 
 		// это нужно для клиента
 		message.createdAt = Date.now();
@@ -73,6 +75,20 @@ function registerMessageHandlers(io, socket) {
 			.then(() => updateMessageList())
 			.catch(onError);
 	})
+
+	socket.on('message:addToSeenBy', async (parameters) => {
+		const {_id: messageId, user: userId} = parameters;
+		await Message.findByIdAndUpdate(messageId, {"$push": {"seenBy": userId}}, (err, docs) => {
+			if (err) {
+				console.log(err)
+			} else {
+				console.log("Updated message : ", docs);
+			}
+		})
+			.catch(onError)
+			.then(() => updateMessageList());
+	});
+
 }
 
 module.exports = registerMessageHandlers;

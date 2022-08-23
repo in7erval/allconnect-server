@@ -28,10 +28,11 @@ async function find(query) {
 }
 
 async function save(message) {
-	await Message.create({
+	return Message.create({
 		user: message.user.toString(),
 		roomId: message.roomId.toString(),
-		text: message.text.toString()
+		text: message.text.toString(),
+		seenBy: [message.user.toString()]
 	});
 }
 

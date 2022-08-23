@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bodyParser = require("body-parser");
 
 const messageSchema = new mongoose.Schema({
 		// messageType: {
@@ -17,7 +18,12 @@ const messageSchema = new mongoose.Schema({
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
 			required: true
-		}
+		},
+		seenBy: [{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+			required: true
+		}]
 	},
 	{
 		timestamps: true
