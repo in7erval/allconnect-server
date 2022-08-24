@@ -1,4 +1,5 @@
 const Message = require('../models/message');
+const ObjectId = require('mongodb').ObjectId;
 
 async function find(query) {
 	let answ = [];
@@ -36,8 +37,97 @@ async function save(message) {
 	});
 }
 
+async function findAllRooms(userId) {
+	let messages = [];
+	let error = null;
+	userId = userId.toString()
+	console.log("findAllRooms", userId);
+	console.log(new RegExp(`(${userId}:\\w+)|(\\w+:${userId})`, 'g'));
+
+	await Message.aggregate([
+		{"$match": {roomId: {"$regex": new RegExp(`(${userId}:\\w+)|(\\w+:${userId})`, 'g')}}},
+		{"$sort": {createdAt: -1}},
+		{
+			"$group": {
+				_id: "$roomId",
+				text: {
+					$first: "$text"
+				},
+				seenBy: {
+					$first: "$seenBy"
+				},
+				createdAt: {
+					$first: "$createdAt"
+				}
+			}
+		},
+		{
+			"$addFields":
+				{
+					user: {
+						$map: {
+							input: {$split: ["$_id", ":"]},
+							as: "users",
+							in: "$$users"
+						}
+					}
+				}
+		},
+		{
+			"$addFields":
+				{
+					user: {
+						$filter: {
+							input: "$user",
+							as: "user",
+							cond: {$ne: ["$$user", userId]}
+						}
+					}
+				}
+		},
+		{
+			"$addFields":
+				{
+					user: {
+						$map: {
+							input: "$user",
+							as: "user",
+							in: {$toObjectId: "$$user"}
+						}
+					},
+				}
+		},
+		{
+			"$lookup": {
+				from: "users",
+				localField: "user",
+				foreignField: "_id",
+				as: "user"
+			}
+		},
+		{
+			"$unwind": {
+				path: "$user",
+				preserveNullAndEmptyArrays: true
+			}
+		},
+		{
+			"$sort": {
+				createdAt: -1
+			}
+		}
+	])
+		.exec()
+		.then(result => messages = result)
+		.catch(error_ => error = error_);
+
+	console.log(messages);
+
+	return {body: messages, error};
+}
+
 module.exports = {
-	find, save
+	find, save, findAllRooms
 }
 
 

@@ -120,6 +120,11 @@ function createRoutes(app) {
 		console.log('POST /api/messages body=', req.body);
 		mongoMessages.save(req.body).then(result => res.json(result));
 	});
+
+	app.get("/api/messages/rooms", (req, res) => {
+		console.log('GET /api/messages/rooms query=', req.query);
+		mongoMessages.findAllRooms(req.query.user).then(result => res.json(result));
+	});
 }
 
 module.exports = {createRoutes};
