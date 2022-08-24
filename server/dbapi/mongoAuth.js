@@ -13,11 +13,23 @@ const {
 } = require('../errors/authErrors');
 const mongoose = require("mongoose");
 
-async function getUser(login, loginPass) {
+async function getUserByUid(uid) {
 	let user = {};
 	let error = null;
 
-	const promise = UserAuth.findOne({"login": login.toString()})
+	await UserAuth.findOne({"uid": uid.toString()})
+		// .populate('user')
+		.exec()
+		.then(userResponse => user = userResponse)
+		.catch(errorResponse => error = errorResponse);
+	return {user, error};
+}
+
+async function getUser(email) {
+	let user = {};
+	let error = null;
+
+	const promise = UserAuth.findOne({"email": email.toString()})
 		// .populate('user')
 		.exec();
 
@@ -35,10 +47,6 @@ async function getUser(login, loginPass) {
 		return {body: null, error: NOT_FOUND};
 	}
 
-	if (user.loginPassBase64 !== loginPass) {
-		return {body: null, error: PASSWORD_NOT_CORRECT};
-	}
-
 	return {body: user, error: error};
 }
 
@@ -53,9 +61,10 @@ async function registerUser(user) {
 	})
 
 	const newUserAuth = new UserAuth({
-		login: user.login,
-		loginPassBase64: user.loginPass,
-		user: newUser._id
+		email: user.email,
+		user: newUser._id,
+		uid: user.uid,
+		metadata: user.metadata
 	});
 
 	await newUserAuth.save()
@@ -78,7 +87,8 @@ async function registerUser(user) {
 
 module.exports = {
 	getUser,
-	registerUser
+	registerUser,
+	getUserByUid
 }
 
 

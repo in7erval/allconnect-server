@@ -63,9 +63,16 @@ function createRoutes(app) {
 	});
 
 	app.post("/api/auth", jsonParser, (req, res) => {
-		console.log('/api/auth body=', req.body);
+		console.log('POST /api/auth body=', req.body);
 
 		mongoAuth.getUser(req.body.login.toString(), req.body.loginPass.toString())
+			.then(result => res.json(result));
+	});
+
+	app.get("/api/auth", jsonParser, (req, res) => {
+		console.log('GET /api/auth query=', req.query);
+
+		mongoAuth.getUserByUid(req.query.uid)
 			.then(result => res.json(result));
 	});
 
@@ -115,4 +122,4 @@ function createRoutes(app) {
 	});
 }
 
-module.exports = { createRoutes };
+module.exports = {createRoutes};

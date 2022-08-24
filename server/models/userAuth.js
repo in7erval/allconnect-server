@@ -4,12 +4,17 @@ require('./user');
 const Schema = mongoose.Schema;
 
 const UsersAuthSchema = new Schema({
-		login: {type: String, required: true, unique: true},
-		loginPassBase64: {type: String, required: true, unique: true},
+		email: {type: String, required: true, unique: true},
 		user: {
 			type: Schema.Types.ObjectId,
 			unique: true, required: true, ref: 'User',
 			default: new mongoose.Types.ObjectId()
+		},
+		uid: {
+			type: String, required: true, unique: true
+		},
+		metadata: {
+			type: Object, required: true
 		}
 	},
 	{
