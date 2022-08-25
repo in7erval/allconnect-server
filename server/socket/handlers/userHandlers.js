@@ -1,50 +1,58 @@
 // "хранилище" пользователей
-const users = {}
+const Message = require("../../models/message");
+const onError = require("../../utils/onError");
+const users = [];
+
+const getUser = (userId, socket) => {
+	for (let user of users) {
+		if (user.userId === userId) {
+			return user;
+		}
+	}
+	let newUser = {
+		userId: userId,
+		socketId: socket.id,
+		connected: true,
+		lastConnection: new Date()
+	};
+	users.push(newUser);
+	return newUser;
+}
 
 function registerUserHandlers(io, socket) {
 
-	// извлекаем идентификатор комнаты и имя пользователя из объекта сокета
-	const { roomId, userId} = socket;
+	const {userId} = socket;
 
-	// инициализируем хранилище пользователей
-	if (!users[roomId]) {
-		users[roomId] = [];
-	}
+	let user = getUser(userId, socket);
+	user.connected = true;
+	console.log("newOnlineUser", user);
 
-	// утилита для обновления списка пользователей
 	const updateUserList = () => {
-		// сообщение получают только пользователи, находящиеся в комнате
-		io.to(roomId).emit('user_list:update', users[roomId])
+		console.log("users_list:update => ");
+		for (let user of users) {
+			if (user.connected) {
+				io.to(user.userId).emit('users_list:update', users);
+			}
+		}
 	}
 
-	// обрабатываем подключение нового пользователя
-	socket.on('user:add', async (user) => {
-		// сообщаем другим пользователям об этом
-		socket.to(roomId).emit('log', `User ${userId} connected`);
+	socket.on('users:get', async () => {
+		console.log("=> users.get")
+		try {
+			updateUserList();
+		} catch (e) {
+			onError(e);
+		}
+	});
 
-		console.log("user", user);
-
-		// записываем идентификатор сокета пользователя
-		user.socketId = socket.id;
-
-		// записываем пользователя в хранилище
-		users[roomId].push(user);
-
-		// обновляем список пользователей
-		updateUserList();
-	})
-
-	// обрабатываем отключения пользователя
 	socket.on('disconnect', () => {
-		if (!users[roomId]) return
+		if (!users) return
+		socket.to(userId).emit('log', `User ${userId} disconnected`)
 
-		// сообщаем об этом другим пользователям
-		socket.to(roomId).emit('log', `User ${userId} disconnected`)
+		let user = users.find((u) => u.userId === userId);
+		user.connected = false;
+		user.lastConnection = new Date();
 
-		// удаляем пользователя из хранилища
-		users[roomId] = users[roomId].filter((u) => u.socketId !== socket.id)
-
-		// обновляем список пользователей
 		updateUserList();
 	})
 }

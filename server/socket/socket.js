@@ -10,7 +10,7 @@ function initSocket(server) {
 
 // получаем обработчики событий
 	const registerMessageHandlers = require('./handlers/messageHandlers');
-	// const registerUserHandlers = require('./handlers/userHandlers');
+	const registerUserHandlers = require('./handlers/userHandlers');
 	const registerCommentHandlers = require('./handlers/commentHandlers');
 
 // данная функция выполняется при подключении каждого сокета (обычно, один клиент = один сокет)
@@ -36,6 +36,10 @@ function initSocket(server) {
 				socket.join(postId);
 				registerCommentHandlers(io, socket);
 				break
+			case "connect":
+				socket.join(userId);
+				registerUserHandlers(io, socket);
+				break;
 		}
 
 		// обрабатываем отключение сокета-пользователя
@@ -49,6 +53,9 @@ function initSocket(server) {
 					break;
 				case "comment":
 					socket.leave(postId);
+					break;
+				case "connect":
+					socket.leave(userId);
 					break;
 			}
 		})
