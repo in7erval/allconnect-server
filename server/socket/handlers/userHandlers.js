@@ -1,6 +1,7 @@
 // "хранилище" пользователей
 const Message = require("../../models/message");
 const onError = require("../../utils/onError");
+const {ONLINE_USERS} = require("../constants");
 const users = [];
 
 const getUser = (userId, socket) => {
@@ -29,11 +30,7 @@ function registerUserHandlers(io, socket) {
 
 	const updateUserList = () => {
 		console.log("users_list:update => ");
-		for (let user of users) {
-			if (user.connected) {
-				io.to(user.userId).emit('users_list:update', users);
-			}
-		}
+		io.to(ONLINE_USERS).emit('users_list:update', users);
 	}
 
 	socket.on('users:get', async () => {
@@ -47,14 +44,14 @@ function registerUserHandlers(io, socket) {
 
 	socket.on('disconnect', () => {
 		if (!users) return
-		socket.to(userId).emit('log', `User ${userId} disconnected`)
+		socket.to(ONLINE_USERS).emit('log', `User ${userId} disconnected`)
 
 		let user = users.find((u) => u.userId === userId);
 		user.connected = false;
-		user.lastConnection = new Date();
+		user.lastConnection = new Date(); //todo: занести в бд
 
 		updateUserList();
-	})
+	});
 }
 
 

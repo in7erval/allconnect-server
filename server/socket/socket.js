@@ -1,4 +1,5 @@
 const socketio = require('socket.io');
+const {ONLINE_USERS} = require("./constants");
 
 function initSocket(server) {
 
@@ -15,8 +16,6 @@ function initSocket(server) {
 
 // данная функция выполняется при подключении каждого сокета (обычно, один клиент = один сокет)
 	const onConnection = (io, socket) => {
-
-
 		const {roomId, postId, userId, action} = socket.handshake.query;
 
 		socket.roomId = roomId;
@@ -37,7 +36,7 @@ function initSocket(server) {
 				registerCommentHandlers(io, socket);
 				break
 			case "connect":
-				socket.join(userId);
+				socket.join(ONLINE_USERS);
 				registerUserHandlers(io, socket);
 				break;
 		}
@@ -55,7 +54,7 @@ function initSocket(server) {
 					socket.leave(postId);
 					break;
 				case "connect":
-					socket.leave(userId);
+					socket.leave(ONLINE_USERS);
 					break;
 			}
 		})
