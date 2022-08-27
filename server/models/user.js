@@ -16,6 +16,7 @@ const UsersSchema = new Schema({
 				message: '{VALUE} is not supported'
 			}
 		},
+		lastConnection: Date,
 		dateOfBirth: Date
 	},
 	{

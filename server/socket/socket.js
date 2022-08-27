@@ -15,7 +15,7 @@ function initSocket(server) {
 	const registerCommentHandlers = require('./handlers/commentHandlers');
 
 // данная функция выполняется при подключении каждого сокета (обычно, один клиент = один сокет)
-	const onConnection = (io, socket) => {
+	const onConnection = async (io, socket) => {
 		const {roomId, postId, userId, action} = socket.handshake.query;
 
 		socket.roomId = roomId;
@@ -37,7 +37,7 @@ function initSocket(server) {
 				break
 			case "connect":
 				socket.join(ONLINE_USERS);
-				registerUserHandlers(io, socket);
+				await registerUserHandlers(io, socket);
 				break;
 		}
 
@@ -61,8 +61,8 @@ function initSocket(server) {
 	}
 
 // обрабатываем подключение
-	io.on('connection', (socket) => {
-		onConnection(io, socket)
+	io.on('connection', async (socket) => {
+		await onConnection(io, socket)
 	});
 }
 

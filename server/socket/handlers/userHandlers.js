@@ -1,56 +1,99 @@
 // "хранилище" пользователей
-const Message = require("../../models/message");
+const UsersStatus = require('../../models/userStatus');
 const onError = require("../../utils/onError");
 const {ONLINE_USERS} = require("../constants");
-const users = [];
+let users = [];
 
-const getUser = (userId, socket) => {
+const getUser = (userId) => {
 	for (let user of users) {
 		if (user.userId === userId) {
 			return user;
 		}
 	}
-	let newUser = {
-		userId: userId,
-		socketId: socket.id,
-		connected: true,
-		lastConnection: new Date()
-	};
-	users.push(newUser);
-	return newUser;
+	return null;
 }
 
-function registerUserHandlers(io, socket) {
+async function retrieveUsersStatusFromDB() {
+	const _users = await UsersStatus.find().exec();
+	console.log("firstRetrieve of _users", _users);
+	users = _users.map(user => {
+		return {
+			userId: user.user.toString(),
+			socketId: user.socketId,
+			connected: user.connected,
+			lastConnection: user.lastConnection
+		};
+	});
+	console.log("retrieved and set", users);
+}
 
-	const {userId} = socket;
-
-	let user = getUser(userId, socket);
-	user.connected = true;
-	console.log("newOnlineUser", user);
+async function registerUserHandlers(io, socket) {
 
 	const updateUserList = () => {
 		console.log("users_list:update => ");
 		io.to(ONLINE_USERS).emit('users_list:update', users);
 	}
 
+	const {userId} = socket;
+	if (users.length === 0) {
+		await retrieveUsersStatusFromDB();
+	}
+
+	let user = getUser(userId);
+	if (user === null) {
+		console.log("register newUserStatus");
+		await UsersStatus.create({
+			user: userId,
+			socketId: socket.id,
+			connected: true
+		}).then(_user => user = _user);
+	} else {
+		await UsersStatus.findOneAndUpdate(
+			{"user": user.userId},
+			{connected: true},
+			{safe: true, new: true}
+		).exec()
+			.then((doc, err) => {
+				if (err) {
+					console.log("err", err);
+				} else {
+					console.log("Updated userStatus:", doc);
+				}
+			})
+			.catch(onError);
+	}
+	console.log("newOnlineUser", user);
+
 	socket.on('users:get', async () => {
 		console.log("=> users.get")
 		try {
+			await retrieveUsersStatusFromDB();
 			updateUserList();
 		} catch (e) {
 			onError(e);
 		}
 	});
 
-	socket.on('disconnect', () => {
-		if (!users) return
+	socket.on('disconnect', async () => {
+		if (!users || users.length === 0) return
 		socket.to(ONLINE_USERS).emit('log', `User ${userId} disconnected`)
 
-		let user = users.find((u) => u.userId === userId);
-		user.connected = false;
-		user.lastConnection = new Date(); //todo: занести в бд
+		await UsersStatus.findOneAndUpdate(
+			{"user": user.userId},
+			{lastConnection: new Date(), connected: false},
+			{safe: true, new: true}
+		).exec()
+			.then((doc, err) => {
+				if (err) {
+					console.log("err", err);
+				} else {
+					console.log("Updated userStatus:", doc);
+				}
+			})
+			.then(() => retrieveUsersStatusFromDB())
+			.then(() => updateUserList())
+			.catch(onError);
 
-		updateUserList();
 	});
 }
 
