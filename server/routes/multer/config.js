@@ -1,18 +1,17 @@
-const multer = require('multer');
-const util = require("util");
-const fs = require('fs');
-const path = require('path');
-const imgModel = require('../models/image');
-const mongoUsers = require("../dbapi/mongoUsers");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const mongoUsers = require("../../service/userService");
 
-
+const Logging = require("../../logging");
+const console = new Logging(__filename);
 
 const storage = multer.diskStorage({
 	destination: function (req, file, cb) {
-		let pathStr = path.join(__dirname + '/../uploads/' + req.params.id + "/").toString();
+		let pathStr = path.join(__dirname + '/../../uploads/').toString() + req.params.id + "/";
 		console.log("pathStr", pathStr);
 		if (!fs.existsSync(pathStr)) {
-			fs.mkdirSync(pathStr);
+			fs.mkdirSync(pathStr, {recursive: true});
 		}
 		req.body['dest'] = pathStr;
 		cb(null, pathStr);
@@ -56,28 +55,4 @@ const upload = multer({
 	},
 });
 
-function createFilesRoute(app) {
-	console.log("CREATE FILES ROUTE");
-
-	app.post('/api/user/:id/image', upload.single("image"), (req, res) => {
-		console.log(`/api/user/${req.params.id}/image`, req.params);
-
-		if (req.file == undefined) {
-			console.log("ERROR");
-			return res.status(400).send({ message: "Upload a file please!" });
-		}
-
-		console.log(`/api/user/${req.params.id}/image FILE:`, req.file);
-		const url = req.protocol + "://" + req.get('host');
-		const fullurl = url + '/uploads/' + req.params.id + "/" + req.file.filename;
-		console.log("URL", fullurl);
-		mongoUsers.updateOne({ userId: req.params.id, picture: fullurl });
-
-		res.status(200).send({
-			message: "The following file was uploaded successfully: " + req.file.originalname,
-		});
-
-	});
-}
-
-module.exports = { createFilesRoute };
+module.exports = upload;

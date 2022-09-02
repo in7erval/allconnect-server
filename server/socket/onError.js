@@ -1,4 +1,4 @@
-function onError(err, req, res, next) {
+module.exports = function onError(err, req, res, next) {
 	console.log(err)
 
 	// если имеется объект ошибки
@@ -10,5 +10,3 @@ function onError(err, req, res, next) {
 		res.status(status).json({ message })
 	}
 }
-
-module.exports = onError;

@@ -3,18 +3,15 @@ require('./user');
 
 const Schema = mongoose.Schema;
 
-const UsersAuthSchema = new Schema({
+const UserAuthSchema = new Schema({
 		email: {type: String, required: true, unique: true},
+		password: {type: String, required: true},
+		isActivated: {type: String, default: false},
+		activationLink: {type: String},
 		user: {
 			type: Schema.Types.ObjectId,
-			unique: true, required: true, ref: 'User',
+			unique: true, ref: 'User',
 			default: new mongoose.Types.ObjectId()
-		},
-		uid: {
-			type: String, required: true, unique: true
-		},
-		metadata: {
-			type: Object, required: true
 		}
 	},
 	{
@@ -24,11 +21,6 @@ const UsersAuthSchema = new Schema({
 		}
 	});
 
-UsersAuthSchema.virtual('password')
-	.set(function (value, virtual, doc) {
-		this.loginPassBase64 = btoa(`${doc.login}:${value}`);
-	});
-
-module.exports = mongoose.model('UserAuth', UsersAuthSchema);
+module.exports = mongoose.model('UserAuth', UserAuthSchema);
 
 

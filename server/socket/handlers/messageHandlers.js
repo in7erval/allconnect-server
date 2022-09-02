@@ -1,6 +1,9 @@
 const Message = require('../../models/message');
-const onError = require('../../utils/onError');
-const mongoMessages = require("../../dbapi/mongoMessages");
+const onError = require('../onError');
+const mongoMessages = require("../../service/messagesService");
+
+const Logging = require("../../logging/index");
+const console = new Logging(__filename);
 
 // "хранилище" для сообщений
 const messages = {}

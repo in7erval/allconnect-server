@@ -1,6 +1,9 @@
 const socketio = require('socket.io');
 const {ONLINE_USERS} = require("./constants");
 
+const Logging = require("../logging/index");
+const console = new Logging(__filename);
+
 function initSocket(server) {
 
 	const io = new socketio.Server(server, {

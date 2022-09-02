@@ -1,6 +1,9 @@
 const Comment = require('../../models/comment');
 const Post = require('../../models/post');
-const onError = require('../../utils/onError');
+const onError = require('../onError');
+
+const Logging = require("../../logging/index");
+const console = new Logging(__filename);
 
 // "хранилище" для сообщений
 const comments = {}

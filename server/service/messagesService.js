@@ -1,13 +1,14 @@
 const Message = require('../models/message');
 const ObjectId = require('mongodb').ObjectId;
+const Logging = require("../logging");
+const ApiError = require("../exceptions/apiError");
+
+const console = new Logging(__filename);
+
 
 async function find(query) {
-	let answ = [];
-	let error = null;
-
 	let promise = Message.find({roomId: query.roomId.toString()})
 		.sort({createdAt: -1});
-
 
 	if (query.last) {
 		promise = promise.limit(1);
@@ -15,17 +16,13 @@ async function find(query) {
 
 	promise.populate('user');
 
-	await promise.exec().then((messages, err) => {
-		if (err) {
-			console.log('error', err.toString());
-			error = {msg: err.toString(), code: -1};
-		} else {
-			console.log("found", messages.length)
-			answ.push(...messages);
-		}
-	});
+	const answer = await promise.exec()
+		.catch(error => {
+			console.error('error', _error.toString());
+			throw ApiError.BadRequest(`Ошибка при получении сообщений query=${query}. ${error}`);
+		});
 
-	return {body: answ, error}
+	return {body: answer}
 }
 
 async function save(message) {
@@ -37,14 +34,38 @@ async function save(message) {
 	});
 }
 
-async function findAllRooms(userId) {
-	let messages = [];
-	let error = null;
-	userId = userId.toString()
-	console.log("findAllRooms", userId);
-	console.log(new RegExp(`(${userId}:\\w+)|(\\w+:${userId})`, 'g'));
+async function countUnreadMessages(userId) {
+	userId = userId.toString();
 
-	await Message.aggregate([
+	let result = await Message.aggregate([
+		{
+			$match: {
+				roomId: {
+					$regex: new RegExp(`(${userId}:\\w+)|(\\w+:${userId})`, 'g')
+				},
+				user: {
+					$ne: new ObjectId(userId)
+				},
+				seenBy: {
+					$ne: new ObjectId(userId)
+				}
+			}
+		}
+	]).exec()
+		.catch(error => {
+			console.error(error);
+			throw ApiError.BadRequest(`Ошибка при подсчете непрочитанных сообщений для userId=${userId}. ${error}`);
+		});
+
+	console.info("unseen messages", result);
+
+	return [...result];
+}
+
+async function findAllRooms(userId) {
+	userId = userId.toString()
+
+	let messages = await Message.aggregate([
 		{"$match": {roomId: {"$regex": new RegExp(`(${userId}:\\w+)|(\\w+:${userId})`, 'g')}}},
 		{"$sort": {createdAt: -1}},
 		{
@@ -118,16 +139,18 @@ async function findAllRooms(userId) {
 		}
 	])
 		.exec()
-		.then(result => messages = result)
-		.catch(error_ => error = error_);
+		.catch(error => {
+			console.error(error);
+			throw ApiError.BadRequest(`Ошибка при получении чатов для пользователя с userId=${userId}. ${error}`);
+		});
 
-	console.log(messages);
+	console.info(messages);
 
-	return {body: messages, error};
+	return messages;
 }
 
 module.exports = {
-	find, save, findAllRooms
+	find, save, findAllRooms, countUnreadMessages
 }
 
 

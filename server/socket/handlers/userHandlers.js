@@ -1,6 +1,6 @@
 // "хранилище" пользователей
 const UsersStatus = require('../../models/userStatus');
-const onError = require("../../utils/onError");
+const onError = require("../onError");
 const {ONLINE_USERS} = require("../constants");
 let users = [];
 
@@ -24,7 +24,7 @@ async function retrieveUsersStatusFromDB() {
 			lastConnection: user.lastConnection
 		};
 	});
-	console.log("retrieved and set", users);
+	// console.log("retrieved and set", users);
 }
 
 async function registerUserHandlers(io, socket) {
@@ -42,11 +42,14 @@ async function registerUserHandlers(io, socket) {
 	let user = getUser(userId);
 	if (user === null) {
 		console.log("register newUserStatus");
-		await UsersStatus.create({
-			user: userId,
-			socketId: socket.id,
-			connected: true
-		}).then(_user => user = _user);
+		if (userId && socket.id) {
+			await UsersStatus.create({
+				user: userId,
+				socketId: socket.id,
+				connected: true
+			}).then(_user => user = _user)
+				.catch(err => console.error(err));
+		}
 	} else {
 		await UsersStatus.findOneAndUpdate(
 			{"user": user.userId},
@@ -57,12 +60,12 @@ async function registerUserHandlers(io, socket) {
 				if (err) {
 					console.log("err", err);
 				} else {
-					console.log("Updated userStatus:", doc);
+					// console.log("Updated userStatus:", doc);
 				}
 			})
 			.catch(onError);
 	}
-	console.log("newOnlineUser", user);
+	// console.log("newOnlineUser", user);
 
 	socket.on('users:get', async () => {
 		console.log("=> users.get")
@@ -83,13 +86,6 @@ async function registerUserHandlers(io, socket) {
 			{lastConnection: new Date(), connected: false},
 			{safe: true, new: true}
 		).exec()
-			.then((doc, err) => {
-				if (err) {
-					console.log("err", err);
-				} else {
-					console.log("Updated userStatus:", doc);
-				}
-			})
 			.then(() => retrieveUsersStatusFromDB())
 			.then(() => updateUserList())
 			.catch(onError);
