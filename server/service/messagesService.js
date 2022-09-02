@@ -2,6 +2,7 @@ const Message = require('../models/message');
 const ObjectId = require('mongodb').ObjectId;
 const Logging = require("../logging");
 const ApiError = require("../exceptions/apiError");
+const escapeStringRegexp = require("escape-string-regexp");
 
 const console = new Logging(__filename);
 
@@ -35,7 +36,7 @@ async function save(message) {
 }
 
 async function countUnreadMessages(userId) {
-	userId = userId.toString();
+	userId = escapeStringRegexp(userId.toString());
 
 	let result = await Message.aggregate([
 		{
@@ -63,7 +64,7 @@ async function countUnreadMessages(userId) {
 }
 
 async function findAllRooms(userId) {
-	userId = userId.toString()
+	userId = escapeStringRegexp(userId.toString());
 
 	let messages = await Message.aggregate([
 		{"$match": {roomId: {"$regex": new RegExp(`(${userId}:\\w+)|(\\w+:${userId})`, 'g')}}},

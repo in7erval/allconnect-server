@@ -13,7 +13,7 @@ const console = new Logging(__filename);
 class UserAuthService {
 
 	async registration(email, password, firstName, lastName) {
-		const candidate = await UserAuth.findOne({email});
+		const candidate = await UserAuth.findOne({email: email.toString()});
 
 		console.debug(candidate);
 
@@ -23,11 +23,13 @@ class UserAuthService {
 		const hashPassword = await bcrypt.hash(password, 3);
 		const activationLink = uuid.v4();
 		const user = await User.create({
-			firstName, lastName, email
+			firstName: firstName.toString(),
+			lastName: lastName.toString(),
+			email: email.toString()
 		});
 
 		await UserAuth.create({
-			email,
+			email: email.toString(),
 			password: hashPassword,
 			activationLink,
 			user: user._id
@@ -53,7 +55,7 @@ class UserAuthService {
 	// }
 
 	async login(email, password) {
-		const user = await UserAuth.findOne({email}).populate('user');
+		const user = await UserAuth.findOne({email: email.toString()}).populate('user');
 		if (!user) {
 			throw ApiError.BadRequest(`Пользователь с email ${email} не найден`);
 		}

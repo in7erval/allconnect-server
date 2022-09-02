@@ -92,11 +92,11 @@ async function createNotification(postId, fromUserId, type, ownerPostId) {
 	let answ = {};
 
 	await Notification.create({
-		type: type,
-		forUser: ownerPostId,
+		type: type.toString(),
+		forUser: ownerPostId.toString(),
 		additionalInfo: {
-			post: postId,
-			user: fromUserId
+			post: postId.toString(),
+			user: fromUserId.toString()
 		}
 	})
 		.then((doc) => console.debug("Create notification", doc))
