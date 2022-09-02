@@ -2,7 +2,7 @@ const Message = require('../models/message');
 const ObjectId = require('mongodb').ObjectId;
 const Logging = require("../logging");
 const ApiError = require("../exceptions/apiError");
-const escapeStringRegexp = require("escape-string-regexp");
+const escapeStringRegexp = require("escape-string-regexp-node");
 
 const console = new Logging(__filename);
 
