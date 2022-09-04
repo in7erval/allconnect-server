@@ -11,7 +11,9 @@ const console = new Logging(__filename);
 async function getAll(query) {
 	const {limit, skipCount} = parseQuery(query);
 
-	const promise = Comment.find({})
+	const filter = (query.postId == undefined || query.postId == null) ? {} : {post: query.postId};
+
+	const promise = Comment.find(filter)
 		.sort({publishDate: -1})
 		.skip(skipCount).limit(limit);
 
@@ -88,7 +90,7 @@ async function addComment(body) {
 		})
 		.catch(err => {
 			console.error("error when adding comment", err);
-			throw ApiError.BadRequest(`Ошибка при добавлении комментария body=${body}. ${err}`);
+			throw ApiError.BadRequest(`Ошибка при добавлении комментария body=${JSON.stringify(body)}. ${err}`);
 		});
 
 	return {body: answ};

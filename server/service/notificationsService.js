@@ -3,6 +3,7 @@ const {parseQuery} = require("./utils");
 const Logging = require("../logging");
 const {mongoose} = require("mongoose");
 const ApiError = require("../exceptions/apiError");
+const {emitter, NOTIFICATIONS_EVENT_NAME} = require("../emitter");
 
 const console = new Logging(__filename);
 
@@ -89,9 +90,7 @@ function addNotificationForLike(postId, likerUserId, ownerPostId) {
 }
 
 async function createNotification(postId, fromUserId, type, ownerPostId) {
-	let answ = {};
-
-	await Notification.create({
+	let answ = await Notification.create({
 		type: type.toString(),
 		forUser: ownerPostId.toString(),
 		additionalInfo: {
@@ -99,12 +98,17 @@ async function createNotification(postId, fromUserId, type, ownerPostId) {
 			user: fromUserId.toString()
 		}
 	})
-		.then((doc) => console.debug("Create notification", doc))
 		.catch(error => {
 			console.error('error when creating notification', error.toString());
 			throw ApiError.BadRequest(`Ошибка при создании уведомления, параметры(postId=${postId}, ` +
 				`fromUserId=${fromUserId}, type=${type}, ownerPostId=${ownerPostId}), error=${error}`);
 		});
+
+	answ = await answ.populate({path: 'additionalInfo', populate: {path: 'post'}});
+	answ = await answ.populate({path: 'additionalInfo', populate: {path: 'user'}});
+	console.debug("Create notification", answ);
+
+	emitter.emit(NOTIFICATIONS_EVENT_NAME + ownerPostId.toString(), answ);
 
 	return {body: answ};
 }

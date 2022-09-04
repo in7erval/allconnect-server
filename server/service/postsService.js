@@ -49,7 +49,7 @@ async function getAll(query) {
 			throw ApiError.BadRequest(`Ошибка при получении постов, query=${query}, error=${error}`);
 		});
 
-	console.info("answer getAll", answer);
+	// console.info("answer getAll", answer);
 
 	return {body: answer, count: count}
 }

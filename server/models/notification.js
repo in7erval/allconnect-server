@@ -12,7 +12,18 @@ const notificationSchema = new mongoose.Schema({
 			required: true
 		},
 		seen: {type: Boolean, required: true, default: false},
-		additionalInfo: mongoose.Schema.Types.Mixed
+		additionalInfo: {
+			post: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Post",
+				required: true
+			},
+			user: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "User",
+				required: true
+			}
+		}
 	},
 	{
 		timestamps: true

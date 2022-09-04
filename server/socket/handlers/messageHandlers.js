@@ -1,6 +1,6 @@
 const Message = require('../../models/message');
 const onError = require('../onError');
-const mongoMessages = require("../../service/messagesService");
+const messageService = require("../../service/messagesService");
 
 const Logging = require("../../logging/index");
 const console = new Logging(__filename);
@@ -40,13 +40,10 @@ function registerMessageHandlers(io, socket) {
 		console.log("INPUT MESSAGE", message);
 		// пользователи не должны ждать записи сообщения в БД
 
-		message = await mongoMessages.save(message);
+		message = await messageService.save(message);
 
 		// это нужно для клиента
 		message.createdAt = Date.now();
-
-		await message.populate('user');
-		console.log("POPULATE", message);
 
 		if (!messages[roomId] || messages[roomId].length === 0) {
 			const _messages = await Message.find({roomId})
@@ -86,18 +83,7 @@ function registerMessageHandlers(io, socket) {
 	socket.on('message:addToSeenBy', async (parameters) => {
 		const {_id, user} = parameters;
 		console.log("addToSeenBy", parameters);
-		await Message.findOneAndUpdate(
-			{"_id": _id},
-			{"$addToSet": {seenBy: user}},
-			{safe: true, new: true}
-		).exec()
-			.then((doc, err) => {
-				if (err) {
-					console.log("err", err);
-				} else {
-					console.log("Updated message:", doc);
-				}
-			})
+		await messageService.addToSeenBy(_id, user)
 			.then(async () => {
 				messages[roomId] = await Message.find({roomId})
 					.populate('user').exec();

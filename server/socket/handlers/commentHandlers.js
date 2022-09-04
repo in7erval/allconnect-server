@@ -2,7 +2,10 @@ const Comment = require('../../models/comment');
 const Post = require('../../models/post');
 const onError = require('../onError');
 
+const commentsService = require('../../service/commentsService');
+
 const Logging = require("../../logging/index");
+const {getAllById} = require("../../service/notificationsService");
 const console = new Logging(__filename);
 
 // "хранилище" для сообщений
@@ -18,15 +21,13 @@ function registerCommentHandlers(io, socket) {
 		io.to(postId).emit('comment_list:update', comments[postId])
 	};
 
+	const getAllComments = async (postId) => {
+		return Comment.find({post: postId}).populate('owner').exec();
+	}
+
 	socket.on('comments:get', async () => {
 		try {
-			const _comments = await Comment.find({post: postId})
-				.populate('owner').exec();
-			console.log("_comments", _comments);
-
-			comments[postId] = _comments;
-
-
+			comments[postId] = [...await getAllComments(postId)];
 			updateCommentsList();
 		} catch (e) {
 			onError(e);
@@ -37,25 +38,16 @@ function registerCommentHandlers(io, socket) {
 	// обрабатываем создание нового сообщения
 	socket.on('comments:add', async (commentMsg) => {
 
-		const post = await Post.findById(postId).exec();
+		console.debug("new comment", commentMsg);
 
-		console.log("INPUT COMMENT", commentMsg);
-		// пользователи не должны ждать записи сообщения в БД
-		let comment = await Comment.create({
-			message: commentMsg,
-			owner: userId,
-			post: postId
-		}).catch(onError);
-		post.comments.push(comment._id);
-		await post.save();
+		const res = await commentsService.addComment({
+			postId, userId, text: commentMsg
+		});
 
-		await comment.populate('owner');
-		console.log("POPULATE", comment);
-
-		// создаем сообщение оптимистически,
-		// т.е. предполагая, что запись сообщения в БД будет успешной
-		comments[postId].push(comment);
-
+		if (!comments[postId]) {
+			comments[postId] = getAllComments(postId);
+		}
+		comments[postId].push(res.body);
 		// обновляем список сообщений
 		updateCommentsList();
 	});

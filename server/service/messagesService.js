@@ -3,6 +3,7 @@ const ObjectId = require('mongodb').ObjectId;
 const Logging = require("../logging");
 const ApiError = require("../exceptions/apiError");
 const escapeStringRegexp = require("escape-string-regexp-node");
+const {emitter, UNREAD_MESSAGES_EVENT_NAME} = require("../emitter");
 
 const console = new Logging(__filename);
 
@@ -27,15 +28,22 @@ async function find(query) {
 }
 
 async function save(message) {
-	return Message.create({
+	let answ = await Message.create({
 		user: message.user.toString(),
 		roomId: message.roomId.toString(),
 		text: message.text.toString(),
 		seenBy: [message.user.toString()]
 	});
+	answ = await answ.populate('user');
+
+	let ids = message.roomId.toString().split(":");
+	let toUser = (ids[0] === message.user.toString()) ? ids[1] : ids[0];
+
+	emitter.emit(UNREAD_MESSAGES_EVENT_NAME + toUser, await getUnreadMessages(toUser));
+	return answ;
 }
 
-async function countUnreadMessages(userId) {
+async function getUnreadMessages(userId) {
 	userId = escapeStringRegexp(userId.toString());
 
 	let result = await Message.aggregate([
@@ -58,7 +66,7 @@ async function countUnreadMessages(userId) {
 			throw ApiError.BadRequest(`Ошибка при подсчете непрочитанных сообщений для userId=${userId}. ${error}`);
 		});
 
-	console.info("unseen messages", result);
+	console.info(`unseen messages count for ${userId}`, result.length);
 
 	return [...result];
 }
@@ -145,13 +153,21 @@ async function findAllRooms(userId) {
 			throw ApiError.BadRequest(`Ошибка при получении чатов для пользователя с userId=${userId}. ${error}`);
 		});
 
-	console.info(messages);
-
 	return messages;
 }
 
+async function addToSeenBy(messageId, user) {
+	console.log("addToSeenBy", messageId, user);
+	await Message.findOneAndUpdate(
+		{"_id": messageId},
+		{"$addToSet": {seenBy: user}},
+		{safe: true, new: true}
+	);
+	emitter.emit(UNREAD_MESSAGES_EVENT_NAME + user, getUnreadMessages(user));
+}
+
 module.exports = {
-	find, save, findAllRooms, countUnreadMessages
+	find, save, findAllRooms, getUnreadMessages, addToSeenBy
 }
 
 

@@ -32,13 +32,16 @@ router.post('/users/:id/image', authMiddleware, upload.single("image"), userCont
 router.get('/comments', authMiddleware, commentsController.getAll);
 router.post('/comments', authMiddleware, commentsController.addComment);
 router.get('/comments/:id', authMiddleware, commentsController.getById);
+router.get('/comment', authMiddleware, commentsController.getOne);
 
 router.get('/messages', authMiddleware, messagesController.getMessages);
 router.post('/messages', authMiddleware, messagesController.saveMessage);
 router.get('/messages/rooms', authMiddleware, messagesController.findAllRooms);
-router.get('/messages/unread', authMiddleware, messagesController.countUnreadMessages);
+router.get('/messages/unread', authMiddleware, messagesController.getUnreadMessages);
+router.get('/messages/unread/subscribe', authMiddleware, messagesController.getUnreadMessagesSubscribe);
 
 router.get('/notifications', authMiddleware, notificationsController.getAllById);
+router.get('/notification', authMiddleware, notificationsController.getOne);
 
 router.get('/posts', authMiddleware, postsController.getAll);
 router.post('/posts', authMiddleware, postsController.addPost);
