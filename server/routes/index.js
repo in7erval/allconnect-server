@@ -39,6 +39,7 @@ router.post('/messages', authMiddleware, messagesController.saveMessage);
 router.get('/messages/rooms', authMiddleware, messagesController.findAllRooms);
 router.get('/messages/unread', authMiddleware, messagesController.getUnreadMessages);
 router.get('/messages/unread/subscribe', authMiddleware, messagesController.getUnreadMessagesSubscribe);
+router.post('/messages/:roomId/image', authMiddleware, upload.single("messages-image"), messagesController.upload);
 
 router.get('/notifications', authMiddleware, notificationsController.getAllById);
 router.get('/notification', authMiddleware, notificationsController.getOne);

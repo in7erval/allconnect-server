@@ -6,10 +6,7 @@ const messageSchema = new mongoose.Schema({
 		// 	type: String,
 		// 	required: true
 		// },
-		text: {
-			type: String,
-			required: true
-		},
+		text:  String,
 		roomId: {
 			type: String,
 			required: true
@@ -23,7 +20,8 @@ const messageSchema = new mongoose.Schema({
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
 			required: true
-		}]
+		}],
+		picture: String
 	},
 	{
 		timestamps: true

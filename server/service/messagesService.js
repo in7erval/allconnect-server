@@ -32,7 +32,8 @@ async function save(message) {
 		user: message.user.toString(),
 		roomId: message.roomId.toString(),
 		text: message.text.toString(),
-		seenBy: [message.user.toString()]
+		seenBy: [message.user.toString()],
+		picture: message.picture ? message.picture.toString() : null
 	});
 	answ = await answ.populate('user');
 

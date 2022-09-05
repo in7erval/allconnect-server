@@ -1,6 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const crypto = require('crypto');
 const mongoUsers = require("../../service/userService");
 
 const Logging = require("../../logging");
@@ -8,7 +9,9 @@ const console = new Logging(__filename);
 
 const storage = multer.diskStorage({
 	destination: function (req, file, cb) {
-		let pathStr = path.join(__dirname + '/../../uploads/').toString() + req.params.id + "/";
+		const pathId = req.params.id ?? req.params.roomId;
+		const pathStr = path.join(__dirname + '/../../uploads/').toString() + pathId + "/";
+
 		console.log("pathStr", pathStr);
 		if (!fs.existsSync(pathStr)) {
 			fs.mkdirSync(pathStr, {recursive: true});
@@ -19,14 +22,13 @@ const storage = multer.diskStorage({
 	filename: async function (req, file, cb) {
 		let ars = file.originalname.split(".");
 		let type = ars[ars.length - 1];
+		const pathId = req.params.id ?? req.params.roomId;
 
-		let fname = file.fieldname + "-" + req.params.id + "." + type;
-		console.log("TUT", file);
-		const url = req.protocol + "://" + req.get('host');
-		const fullurl = url + '/uploads/' + req.params.id + "/" + fname
-		console.log("URL", fullurl);
-
-		await mongoUsers.updateOne({userId: req.params.id, picture: fullurl});
+		let fname = `${file.fieldname}-${pathId}`;
+		if (req.params.roomId) {
+			fname += crypto.randomUUID().toString();
+		}
+		fname += `.${type}`;
 
 		cb(null, fname);
 	}

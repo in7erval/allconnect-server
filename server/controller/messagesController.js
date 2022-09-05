@@ -2,6 +2,7 @@ const messagesService = require("../service/messagesService");
 
 const Logging = require('../logging/index');
 const {emitter, UNREAD_MESSAGES_EVENT_NAME} = require("../emitter");
+const ApiError = require("../exceptions/apiError");
 const console = new Logging(__filename);
 
 class MessagesController {
@@ -52,6 +53,25 @@ class MessagesController {
 			emitter.once(UNREAD_MESSAGES_EVENT_NAME + userId, (unreadMessages) => {
 				res.json(unreadMessages);
 			});
+		} catch (e) {
+			console.error(e);
+			next(e);
+		}
+	}
+
+	async upload(req, res, next) {
+		try {
+			if (req.file == undefined) {
+				throw ApiError.BadRequest("Файл отсутствует или не был загружен");
+			}
+			const pathId = req.params.id ?? req.params.roomId;
+			console.log(req.file);
+
+			const url = req.protocol + "://" + req.get('host');
+			const fullurl = url + '/uploads/' + pathId + "/" + req.file.filename;
+
+			console.log("URL", fullurl);
+			return res.json({path: fullurl});
 		} catch (e) {
 			console.error(e);
 			next(e);
