@@ -15,7 +15,7 @@ const getUser = (userId) => {
 
 async function retrieveUsersStatusFromDB() {
 	const _users = await UsersStatus.find().exec();
-	console.log("firstRetrieve of _users", _users);
+	console.log("firstRetrieve of _users", _users.length);
 	users = _users.map(user => {
 		return {
 			userId: user.user.toString(),

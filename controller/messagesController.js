@@ -58,25 +58,6 @@ class MessagesController {
 			next(e);
 		}
 	}
-
-	async upload(req, res, next) {
-		try {
-			if (req.file == undefined) {
-				throw ApiError.BadRequest("Файл отсутствует или не был загружен");
-			}
-			const pathId = req.params.id ?? req.params.roomId;
-			console.log(req.file);
-
-			const url = req.protocol + "://" + req.get('host');
-			const fullurl = url + '/uploads/' + pathId + "/" + req.file.filename;
-
-			console.log("URL", fullurl);
-			return res.json({path: fullurl});
-		} catch (e) {
-			console.error(e);
-			next(e);
-		}
-	}
 }
 
 module.exports = new MessagesController();

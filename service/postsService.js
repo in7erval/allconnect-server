@@ -1,5 +1,6 @@
 const Post = require('../models/post');
 const User = require('../models/user');
+const Comment = require('../models/comment');
 const {parseQuery} = require("./utils");
 const {addNotificationForLike} = require("./notificationsService");
 const Logging = require("../logging");
@@ -100,6 +101,7 @@ async function getById(id, query) {
 }
 
 async function addPost(post) {
+	console.log("add post", post);
 	const postItem = await Post.create({...post})
 		.catch(err => {
 			console.error(err);
@@ -145,11 +147,19 @@ async function actionWithLike(postId, userId, action) {
 	return {body: res};
 }
 
+async function deleteById(postId) {
+	postId = postId.toString();
+	let post = await Post.findById(postId).exec();
+	await Comment.deleteMany({_id: {$in: post.comments}});
+	await Post.deleteOne({_id: postId});
+}
+
 module.exports = {
 	getAll,
 	getById,
 	getAllForOwner,
 	addPost,
-	actionWithLike
+	actionWithLike,
+	deleteById
 }
 

@@ -2,14 +2,13 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const crypto = require('crypto');
-const mongoUsers = require("../../service/userService");
 
 const Logging = require("../../logging");
 const console = new Logging(__filename);
 
 const storage = multer.diskStorage({
 	destination: function (req, file, cb) {
-		const pathId = req.params.id ?? req.params.roomId;
+		const pathId = req.params.id;
 		const pathStr = path.join(__dirname + '/../../uploads/').toString() + pathId + "/";
 
 		console.log("pathStr", pathStr);
@@ -22,14 +21,11 @@ const storage = multer.diskStorage({
 	filename: async function (req, file, cb) {
 		let ars = file.originalname.split(".");
 		let type = ars[ars.length - 1];
-		const pathId = req.params.id ?? req.params.roomId;
+		const pathId = req.params.id;
 
 		let fname = `${file.fieldname}-${pathId}`;
-		if (req.params.roomId) {
-			fname += crypto.randomUUID().toString();
-		}
+		fname += crypto.randomUUID().toString();
 		fname += `.${type}`;
-
 		cb(null, fname);
 	}
 });

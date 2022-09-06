@@ -48,7 +48,7 @@ async function getById(id, query) {
 
 	return promise.exec()
 		.then(user => {
-			console.debug("found", user)
+			// console.debug("found", user)
 			return user;
 		})
 		.catch(err => {
@@ -89,6 +89,7 @@ async function getUserByName(query) {
 }
 
 async function prepareForActionFriends(query, functionName) {
+	console.log(`query ${functionName}`, query);
 	if (query === undefined) {
 		console.error(`${functionName}() => Query is not set! ${query}`);
 		throw ApiError.BadRequest(`Параметр query не заполнен!`);
@@ -117,7 +118,7 @@ async function prepareForActionFriends(query, functionName) {
 }
 
 async function deleteFriend(query) {
-	let {user1, user2} = prepareForActionFriends(query, "deleteFriend");
+	let {user1, user2} = await prepareForActionFriends(query, "deleteFriend");
 
 	user1.friends.remove(user2._id);
 	user2.friends.remove(user1._id);
@@ -135,7 +136,7 @@ async function deleteFriend(query) {
 }
 
 async function addFriend(query) {
-	let {user1, user2} = prepareForActionFriends(query, "addFriend");
+	let {user1, user2} = await prepareForActionFriends(query, "addFriend");
 
 	if (!user1.friends.includes(user2._id)) {
 		user1.friends.push(user2._id);
