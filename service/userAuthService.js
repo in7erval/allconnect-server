@@ -55,6 +55,7 @@ class UserAuthService {
 	// }
 
 	async login(email, password) {
+		console.log("login");
 		const user = await UserAuth.findOne({email: email.toString()}).populate('user');
 		if (!user) {
 			throw ApiError.BadRequest(`Пользователь с email ${email} не найден`);
@@ -75,6 +76,7 @@ class UserAuthService {
 	}
 
 	async refresh(refreshToken) {
+		console.log("refresh");
 		if (!refreshToken) {
 			console.debug("refreshToken not found");
 			throw ApiError.UnauthorizedError();
