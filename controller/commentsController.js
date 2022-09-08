@@ -18,7 +18,7 @@ class CommentsController {
 
 	async getOne(req, res, next) {
 		try {
-			emitter.once(COMMENTS_EVENT_NAME + req.postId.toString(), (comment) => {
+			emitter.once(COMMENTS_EVENT_NAME + req.query.toString(), (comment) => {
 				res.json(comment);
 			})
 		} catch (e) {
