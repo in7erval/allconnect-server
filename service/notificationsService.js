@@ -82,11 +82,15 @@ async function getAllById(query) {
 }
 
 function addNotificationForComment(postId, commenterUserId, ownerPostId) {
-	return createNotification(postId, commenterUserId, "COMMENT", ownerPostId);
+	if (commenterUserId.toString() !== ownerPostId.toString()) {
+		return createNotification(postId, commenterUserId, "COMMENT", ownerPostId);
+	}
 }
 
 function addNotificationForLike(postId, likerUserId, ownerPostId) {
-	return createNotification(postId, likerUserId, "LIKE", ownerPostId);
+	if (likerUserId.toString() !== ownerPostId.toString()) {
+		return createNotification(postId, likerUserId, "LIKE", ownerPostId);
+	}
 }
 
 async function createNotification(postId, fromUserId, type, ownerPostId) {

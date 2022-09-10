@@ -53,5 +53,4 @@ router.post('/posts/:id/delete', authMiddleware, postsController.deleteById);
 
 router.post('/files/:id/image', authMiddleware, upload.single("image"), filesController.upload);
 
-
 module.exports = router;

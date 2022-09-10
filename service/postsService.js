@@ -122,11 +122,11 @@ async function actionWithLike(postId, userId, action) {
 
 	let post = await Post.findById(postId).exec();
 
-	if (toAdd) {
+	if (toAdd && !post.likes.includes(userId)) {
 		post.likes = [...post.likes, userId];
 	}
 	if (toDelete) {
-		post.likes = post.likes.filter(el => el.toString !== userId);
+		post.likes = post.likes.filter(el => el.toString() !== userId);
 	}
 
 	await post.save()

@@ -2,7 +2,7 @@
 const UsersStatus = require('../../models/userStatus');
 const onError = require("../onError");
 const {ONLINE_USERS} = require("../constants");
-let users = [];
+const users = [];
 
 const getUser = (userId) => {
 	for (let user of users) {
@@ -16,15 +16,16 @@ const getUser = (userId) => {
 async function retrieveUsersStatusFromDB() {
 	const _users = await UsersStatus.find().exec();
 	console.log("firstRetrieve of _users", _users.length);
-	users = _users.map(user => {
+	users.length = 0;
+	users.push(..._users.map(user => {
 		return {
 			userId: user.user.toString(),
 			socketId: user.socketId,
 			connected: user.connected,
 			lastConnection: user.lastConnection
 		};
-	});
-	// console.log("retrieved and set", users);
+	}));
+	console.log("retrieved and set", users.length);
 }
 
 async function registerUserHandlers(io, socket) {
@@ -43,29 +44,19 @@ async function registerUserHandlers(io, socket) {
 	if (user === null) {
 		console.log("register newUserStatus");
 		if (userId && socket.id) {
-			await UsersStatus.create({
+			user = await UsersStatus.create({
 				user: userId,
 				socketId: socket.id,
 				connected: true
-			}).then(_user => user = _user)
-				.catch(err => console.error(err));
+			}).catch(err => console.error(err));
 		}
 	} else {
 		await UsersStatus.findOneAndUpdate(
 			{"user": user.userId},
 			{connected: true},
 			{safe: true, new: true}
-		).exec()
-			.then((doc, err) => {
-				if (err) {
-					console.log("err", err);
-				} else {
-					// console.log("Updated userStatus:", doc);
-				}
-			})
-			.catch(onError);
+		).exec().catch(onError);
 	}
-	// console.log("newOnlineUser", user);
 
 	socket.on('users:get', async () => {
 		console.log("=> users.get")

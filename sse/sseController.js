@@ -1,15 +1,43 @@
-const commentsService = require("../service/commentsService");
+const messagesService = require("../service/messagesService");
 
 const Logging = require('../logging/index');
 const {emitter, COMMENTS_EVENT_NAME} = require("../emitter");
+const {response} = require("express");
 const console = new Logging(__filename);
 
-class CommentsController {
+let clients = [];
 
-	async getAll(req, res, next) {
+class SseController {
+
+	async register(req, res, next) {
 		try {
-			const commentsData = await commentsService.getAll(req.query);
-			return res.json(commentsData);
+			console.log("register", req.query);
+			if (req.query.userId === undefined) {
+				next();
+				return;
+			}
+			const headers = {
+				'Content-Type': 'text/event-stream',
+				'Connection': 'keep-alive',
+				'Cache-Control': 'no-cache'
+			};
+			res.writeHead(200, headers);
+			const userId = req.query.userId.toString();
+
+			const roomsData = await messagesService.findAllRooms(userId)
+			const data = `data: ${JSON.stringify(roomsData)}\n\n`;
+			response.write(data);
+
+			const newClient = {
+				id: userId,
+				res
+			};
+			clients.push(newClient);
+
+			req.on('close', () => {
+				console.log(`${userId} Connection closed`);
+				clients = clients.filter(client => client.id !== clientId);
+			});
 		} catch (e) {
 			console.error(e);
 			next(e);
@@ -52,4 +80,4 @@ class CommentsController {
 
 }
 
-module.exports = new CommentsController();
+module.exports = new SseController();

@@ -1,5 +1,6 @@
 const socketio = require('socket.io');
 const {ONLINE_USERS} = require("./constants");
+require('dotenv/config');
 
 const Logging = require("../logging/index");
 const console = new Logging(__filename);
@@ -8,7 +9,7 @@ function initSocket(server) {
 
 	const io = new socketio.Server(server, {
 		cors: {
-			origin: '*' //fixme on host 'http://localhost:3000"
+			origin: process.env.CLIENT_URL
 		}
 	});
 
@@ -26,19 +27,22 @@ function initSocket(server) {
 		socket.userId = userId;
 		socket.action = action;
 
-		console.log(`User ${userId} connected to (roomId:${roomId})(postId:${postId})`);
+
 		// registerUserHandlers(io, socket);
 
 		switch (action) {
 			case "message":
+				console.log(`User ${userId} connected to (roomId:${roomId})`);
 				socket.join(roomId);
 				registerMessageHandlers(io, socket);
 				break;
 			case "comment":
+				console.log(`User ${userId} connected to (postId:${postId})`);
 				socket.join(postId);
 				registerCommentHandlers(io, socket);
 				break
 			case "connect":
+				console.log(`User ${userId} connected`);
 				socket.join(ONLINE_USERS);
 				await registerUserHandlers(io, socket);
 				break;

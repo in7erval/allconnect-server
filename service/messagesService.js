@@ -75,7 +75,7 @@ async function getUnreadMessages(userId) {
 async function findAllRooms(userId) {
 	userId = escapeStringRegexp(userId.toString());
 
-	let messages = await Message.aggregate([
+	return Message.aggregate([
 		{"$match": {roomId: {"$regex": new RegExp(`(${userId}:\\w+)|(\\w+:${userId})`, 'g')}}},
 		{"$sort": {createdAt: -1}},
 		{
@@ -153,8 +153,6 @@ async function findAllRooms(userId) {
 			console.error(error);
 			throw ApiError.BadRequest(`Ошибка при получении чатов для пользователя с userId=${userId}. ${error}`);
 		});
-
-	return messages;
 }
 
 async function addToSeenBy(messageId, user) {

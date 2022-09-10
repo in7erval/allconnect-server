@@ -7,7 +7,7 @@ const Schema = mongoose.Schema;
 
 const PostsSchema = new Schema({
 		image: String,
-		likes: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
+		likes: [{type: mongoose.Schema.Types.ObjectId, ref: 'User', unique: true}],
 		text: {type: String, default: ""},
 		owner: {
 			type: mongoose.Schema.Types.ObjectId, ref: 'User'
