@@ -16,6 +16,7 @@ const UsersSchema = new Schema({
 				message: '{VALUE} is not supported'
 			}
 		},
+		textStatus: {type: String, default: ""},
 		lastConnection: Date,
 		dateOfBirth: Date
 	},
