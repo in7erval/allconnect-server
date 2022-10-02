@@ -6,6 +6,7 @@ const messagesController = require('../controller/messagesController');
 const notificationsController = require('../controller/notificationsController');
 const postsController = require('../controller/postsController');
 const filesController = require('../controller/filesController');
+const teleTokenController = require('../controller/telegramTokenController');
 const upload = require('./multer/config');
 const router = new Router();
 const {body} = require('express-validator');
@@ -52,5 +53,9 @@ router.get('/users/:id/posts', authMiddleware, postsController.getAllForUser);
 router.post('/posts/:id/delete', authMiddleware, postsController.deleteById);
 
 router.post('/files/:id/image', authMiddleware, upload.single("image"), filesController.upload);
+
+router.get('/telegram/getTokenData', authMiddleware, teleTokenController.getToken);
+router.get('/telegram/getToken', authMiddleware, teleTokenController.generateToken);
+router.get('/telegram/updateToken', authMiddleware, teleTokenController.updateToken);
 
 module.exports = router;

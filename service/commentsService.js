@@ -11,8 +11,6 @@ const console = new Logging(__filename);
 async function getAll(query) {
 	const {limit, skipCount} = parseQuery(query);
 
-
-
 	const filter = (query.postId == undefined || query.postId == null) ? {} : {post: query.postId.toString()};
 
 	const promise = Comment.find(filter)

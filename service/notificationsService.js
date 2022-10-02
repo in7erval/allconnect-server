@@ -1,9 +1,13 @@
 const Notification = require('../models/notification');
+const TeleToken = require('../models/teleToken');
 const {parseQuery} = require("./utils");
 const Logging = require("../logging");
 const {mongoose} = require("mongoose");
 const ApiError = require("../exceptions/apiError");
 const {emitter, NOTIFICATIONS_EVENT_NAME} = require("../emitter");
+const axios = require("axios");
+
+require('dotenv/config');
 
 const console = new Logging(__filename);
 
@@ -113,6 +117,34 @@ async function createNotification(postId, fromUserId, type, ownerPostId) {
 	console.debug("Create notification", answ);
 
 	emitter.emit(NOTIFICATIONS_EVENT_NAME + ownerPostId.toString(), answ);
+
+	const token = await TeleToken.findOne({user: ownerPostId.toString()});
+	console.debug("Check token", token);
+	if (!!token) {
+		const telegramUser = token.telegramUser;
+		if (telegramUser) {
+			let message;
+			let postMessage;
+			if (answ.additionalInfo.post.text?.length > 50) {
+				postMessage = answ.additionalInfo.post.text.substring(0, 47) + "...";
+			} else {
+				postMessage = answ.additionalInfo.post.text;
+			}
+			if (type === 'LIKE') {
+				message = `Лайк от пользователя ${answ.additionalInfo.user.firstName} ${answ.additionalInfo.user.lastName} к записи '${postMessage}'`
+			} else if (type === 'COMMENT') {
+				message = `Комментарий от пользователя ${answ.additionalInfo.user.firstName} ${answ.additionalInfo.user.lastName} к записи '${postMessage}'`
+			}
+			await axios.get(`https://api.telegram.org/bot${process.env.TELEBOT_TOKEN}/sendMessage`,
+				{
+					params: {
+						text: message,
+						chat_id: telegramUser
+					}
+				})
+		}
+	}
+
 
 	return {body: answ};
 }

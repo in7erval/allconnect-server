@@ -4,6 +4,8 @@ const Logging = require("../logging");
 const ApiError = require("../exceptions/apiError");
 const escapeStringRegexp = require("escape-string-regexp-node");
 const {emitter, UNREAD_MESSAGES_EVENT_NAME} = require("../emitter");
+const axios = require("axios");
+const TeleToken = require("../models/teleToken");
 
 const console = new Logging(__filename);
 
@@ -41,6 +43,32 @@ async function save(message) {
 	let toUser = (ids[0] === message.user.toString()) ? ids[1] : ids[0];
 
 	emitter.emit(UNREAD_MESSAGES_EVENT_NAME + toUser, await getUnreadMessages(toUser));
+
+	// todo: проверить если toUser разлогинен и отправить
+	const isToUserLoggedIn = false;
+	if (isToUserLoggedIn) {
+		const token = await TeleToken.findOne({user: toUser});
+		console.debug("Check token", token);
+		if (!!token) {
+			const telegramUser = token.telegramUser;
+			if (telegramUser) {
+				let messageText;
+				if (answ.text?.length > 50) {
+					messageText = answ.text.substring(0, 47) + "...";
+				} else {
+					messageText = answ.text;
+				}
+				const message = `Новое сообщение от пользователя ${answ.user.firstName} ${answ.user.lastName}:\n${messageText}`
+				await axios.get(`https://api.telegram.org/bot${process.env.TELEBOT_TOKEN}/sendMessage`,
+					{
+						params: {
+							text: message,
+							chat_id: telegramUser
+						}
+					})
+			}
+		}
+	}
 	return answ;
 }
 

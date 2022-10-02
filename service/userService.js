@@ -158,7 +158,7 @@ async function addFriend(query) {
 }
 
 async function updateOne(body) {
-	const userId = body._id.toString();
+	const userId = body.userId.toString();
 
 	delete body._id;
 
